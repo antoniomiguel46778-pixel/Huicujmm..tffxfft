@@ -1,478 +1,1157 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AutoBolso - Gestão de Gastos de Carro</title>
-<!-- Tailwind CSS via CDN -->
+<title>AutoBolso Pro - Controle de Gastos e Manutenção</title>
+<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-primary: '#FFC107',
-primaryDark: '#FFA000',
-darkBg: '#0f172a',
-}
-}
-}
-}
-</script>
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-body { font-family: 'Plus Jakarta Sans', sans-serif; }
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #e2e8f0;
+}
+::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+}
+.bg-pattern {
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 20px 20px;
+}
 </style>
 </head>
-<body class="bg-slate-900 text-slate-100 h-full flex flex-col justify-between selection:bg-primary selection:text-slate-900">
-​<!-- HEADER -->
-<header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-<div class="flex items-center space-x-3">
-<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-<svg class="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-2-4H8L6 10l-2.5 2.1C2.7 12.3 2 13.1 2 14v3c0 .6.4 1 1 1h2m0 0a2 2 0 104 0m-4 0a2 2 0 104 0m8 0a2 2 0 104 0m-4 0a2 2 0 104 0"></path>
-</svg>
-</div>
-<div>
-<div class="flex items-center space-x-2">
-<h1 class="font-bold text-lg leading-tight tracking-tight">AutoBolso</h1>
-<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Silver Pro</span>
-</div>
-<div class="flex items-center space-x-1.5 mt-0.5">
-<span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-amber-500 inline-block animate-pulse"></span>
-<span id="cloudStatusText" class="text-xs text-slate-400 font-medium">Conectando...</span>
-</div>
-</div>
-</div>
-​<button onclick="openNewVehicleModal()" class="bg-primary hover:bg-primaryDark text-slate-900 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center space-x-1.5 shadow-md transition-all active:scale-95">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-<span>Novo Carro</span>
-</button>
+<body class="bg-slate-100 min-h-screen flex flex-col pb-12 bg-pattern text-slate-800">
+
+<header class="bg-slate-900 text-white shadow-xl sticky top-0 z-30 border-b border-slate-800">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3.5">
+            <div class="bg-amber-400 p-2.5 rounded-2xl text-slate-950 flex items-center justify-center shadow-md">
+                <i class="fa-solid fa-car-side text-2xl"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-black text-xl tracking-tight leading-none text-white">AutoBolso</h1>
+                    <span class="bg-amber-400/20 text-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-400/30 uppercase tracking-wider">PRO CLOUD</span>
+                </div>
+                <p class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"></span>
+                    <span id="cloudStatusText">Conectando ao Firebase...</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <div id="vehicleSelectContainer" class="relative hidden">
+                <select id="vehicleSelect" onchange="switchVehicle(this.value)" class="bg-slate-800 text-slate-100 text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer appearance-none shadow-inner">
+                    <!-- Populated dynamically -->
+                </select>
+                <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
+            </div>
+            <button onclick="openModal('addVehicleModal')" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3 py-2 rounded-xl transition shadow-md text-xs flex items-center gap-1.5 active:scale-95">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>Novo Carro</span>
+            </button>
+        </div>
+    </div>
 </header>
-​<!-- MAIN CONTAINER -->
-<main class="flex-1 overflow-y-auto p-4 max-w-lg mx-auto w-full space-y-4 pb-24">
-​<!-- LOADING / INIT STATE -->
-<div id="loadingOverlay" class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-6 text-center space-y-3 shadow-xl">
-<div id="loadingSpinner" class="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-<p id="loadingStateText" class="text-sm font-medium text-slate-300">Sincronizando com o Firebase Firestore...</p>
-​<div id="loadingErrorBanner" class="hidden text-left bg-red-950/40 border border-red-500/30 rounded-xl p-3 text-xs text-red-300 space-y-1">
-<p class="font-bold flex items-center"><svg class="w-4 h-4 mr-1 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Falha ao conectar ao Firebase:</p>
-<p id="loadingErrorDetail" class="font-mono text-[11px] text-red-200 break-all"></p>
+
+<main class="max-w-4xl mx-auto px-4 w-full flex-1 mt-5 space-y-6">
+
+    <section id="loadingState" class="bg-white rounded-3xl p-8 shadow-md border border-slate-200 text-center space-y-3">
+        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500" id="loadingSpinner"></i>
+        <p id="loadingStateText" class="text-sm font-bold text-slate-600">Sincronizando com o Firebase...</p>
+        <div id="loadingErrorBanner" class="hidden mt-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-left text-xs text-amber-900 space-y-2">
+            <p class="font-bold flex items-center gap-1.5 text-amber-800"><i class="fa-solid fa-circle-info"></i> Dica de Sincronização:</p>
+            <p class="text-[11px] text-amber-700 leading-relaxed">Se estiver sem internet ou o banco estiver configurando, o AutoBolso funciona em modo local automático para preservar seus dados.</p>
+        </div>
+    </section>
+
+    <section id="emptyVehicleState" class="hidden bg-white rounded-3xl p-8 shadow-md border border-slate-200 text-center space-y-4">
+        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-sm">
+            <i class="fa-solid fa-car"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-black text-slate-900">Nenhum veículo cadastrado</h2>
+            <p class="text-sm text-slate-500 font-medium mt-1">Cadastre o seu carro abaixo para começar a anotar manutenções, documentos e despesas.</p>
+        </div>
+        <button onclick="openModal('addVehicleModal')" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-xl shadow-md transition text-sm inline-flex items-center gap-2 active:scale-95">
+            <i class="fa-solid fa-plus"></i> Cadastrar Meu Carro
+        </button>
+    </section>
+
+    <div id="dashboardContent" class="hidden space-y-6">
+
+        <!-- Vehicle Stats Overview -->
+        <section class="bg-white rounded-3xl p-5 shadow-md border border-slate-200 relative overflow-hidden">
+            <div class="flex flex-wrap justify-between items-center border-b border-slate-100 pb-4 mb-4 gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-800 border border-slate-200 shadow-sm">
+                        <i class="fa-solid fa-car text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 id="activeCarName" class="text-xl font-extrabold text-slate-900 leading-tight">Carregando...</h2>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span id="activeCarPlate" class="inline-block text-xs font-black text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-md tracking-wider">---</span>
+                            <button onclick="deleteActiveVehicle()" class="text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded-lg border border-red-200 transition flex items-center gap-1 active:scale-95" title="Excluir este veículo">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                <span>Excluir Carro</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
+                    <i class="fa-solid fa-gauge-high text-amber-500 text-lg"></i>
+                    <div class="text-right">
+                        <span class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 block leading-tight">Hodômetro</span>
+                        <span id="activeCarKm" class="font-extrabold text-slate-900 text-base">0 km</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-extrabold text-emerald-700 uppercase tracking-wider">Gastos no Mês</span>
+                        <i class="fa-solid fa-calendar-day text-emerald-600 text-xs"></i>
+                    </div>
+                    <span id="statMonthTotal" class="text-xl sm:text-2xl font-black text-emerald-800 tracking-tight">R$ 0,00</span>
+                </div>
+
+                <div class="bg-purple-50 border border-purple-200 rounded-2xl p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-extrabold text-purple-700 uppercase tracking-wider">Total Acumulado</span>
+                        <i class="fa-solid fa-vault text-purple-600 text-xs"></i>
+                    </div>
+                    <span id="statAllTimeTotal" class="text-xl sm:text-2xl font-black text-purple-800 tracking-tight">R$ 0,00</span>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider">Registros</span>
+                        <i class="fa-solid fa-receipt text-amber-600 text-xs"></i>
+                    </div>
+                    <span id="statRecordCount" class="text-xl sm:text-2xl font-black text-amber-800 tracking-tight">0</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <button onclick="openAddExpenseModal('Manutenção')" class="group bg-white hover:bg-slate-50 text-slate-800 p-4 rounded-3xl shadow-sm transition border border-sky-200 flex flex-col items-center justify-center text-center space-y-2 active:scale-95">
+                <div class="w-12 h-12 bg-sky-100 group-hover:bg-sky-200 text-sky-600 rounded-2xl flex items-center justify-center text-xl transition">
+                    <i class="fa-solid fa-wrench"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-sm sm:text-base text-slate-900 block leading-tight">Manutenção</span>
+                    <span class="text-[10px] sm:text-[11px] text-slate-500 font-medium">Oficina, troca de óleo, peças</span>
+                </div>
+            </button>
+
+            <button onclick="openAddExpenseModal('Documento')" class="group bg-white hover:bg-slate-50 text-slate-800 p-4 rounded-3xl shadow-sm transition border border-emerald-200 flex flex-col items-center justify-center text-center space-y-2 active:scale-95">
+                <div class="w-12 h-12 bg-emerald-100 group-hover:bg-emerald-200 text-emerald-600 rounded-2xl flex items-center justify-center text-xl transition">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-sm sm:text-base text-slate-900 block leading-tight">Documentos</span>
+                    <span class="text-[10px] sm:text-[11px] text-slate-500 font-medium">IPVA, licenciamento, seguro</span>
+                </div>
+            </button>
+
+            <button onclick="openAddExpenseModal('Outros')" class="group bg-white hover:bg-slate-50 text-slate-800 p-4 rounded-3xl shadow-sm transition border border-purple-200 flex flex-col items-center justify-center text-center space-y-2 active:scale-95">
+                <div class="w-12 h-12 bg-purple-100 group-hover:bg-purple-200 text-purple-600 rounded-2xl flex items-center justify-center text-xl transition">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-sm sm:text-base text-slate-900 block leading-tight">Outros</span>
+                    <span class="text-[10px] sm:text-[11px] text-slate-500 font-medium">Pedágio, lavagem, estacionamento</span>
+                </div>
+            </button>
+        </section>
+
+        <!-- Reminders Section -->
+        <section class="bg-white rounded-3xl p-5 shadow-md border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <h3 class="font-black text-slate-900 text-lg">Lembretes e Revisões</h3>
+                </div>
+                <button onclick="openModal('addReminderModal')" class="text-xs font-extrabold text-slate-800 bg-amber-400 hover:bg-amber-500 px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-plus text-xs"></i> Lembrete
+                </button>
+            </div>
+
+            <div id="remindersContainer" class="space-y-3">
+                <!-- Dynamic Reminders -->
+            </div>
+        </section>
+
+        <!-- Expense History Section -->
+        <section class="bg-white rounded-3xl p-5 shadow-md border border-slate-200">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4 border-b border-slate-100 pb-3.5">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-history"></i>
+                    </div>
+                    <h3 class="font-black text-slate-900 text-lg">Histórico de Lançamentos</h3>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <select id="historyFilterCategory" onchange="renderHistory()" class="text-xs bg-slate-50 border border-slate-200 font-bold rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                        <option value="ALL">Todas Categorias</option>
+                        <option value="Manutenção">Manutenção</option>
+                        <option value="Documento">Documento</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="expenseList" class="space-y-3">
+                <!-- Dynamic Expenses -->
+            </div>
+        </section>
+
+    </div>
+
+    <section class="flex flex-wrap justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 text-xs text-slate-500 gap-3 shadow-sm">
+        <div class="flex items-center gap-2 font-bold text-slate-700">
+            <i class="fa-solid fa-cloud text-emerald-500 text-base"></i>
+            <span>Firebase Cloud & Backup Local Ativo.</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="exportDataJson()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition border border-slate-200 flex items-center gap-1.5">
+                <i class="fa-solid fa-download text-[11px]"></i> Exportar Backup
+            </button>
+            <div id="userIdDisplay" class="text-[10px] font-mono text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">
+                ID: Conectando...
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<div id="expenseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden my-auto transform transition-all">
+        <div class="bg-slate-900 text-white p-4.5 flex justify-between items-center">
+            <h3 id="modalExpenseTitle" class="font-black text-lg flex items-center gap-2.5">
+                <i class="fa-solid fa-plus text-amber-400"></i> Novo Registro
+            </h3>
+            <button onclick="closeModal('expenseModal')" class="text-slate-400 hover:text-white bg-slate-800 p-1.5 rounded-xl transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <form id="expenseForm" onsubmit="handleSaveExpense(event)" class="p-5 space-y-4">
+            <input type="hidden" id="expCategory" value="Manutenção">
+
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Descrição / Local</label>
+                <input type="text" id="expTitle" required placeholder="Ex: Oficina Mecânica, IPVA, Troca de Óleo" class="w-full border border-slate-200 rounded-xl p-3 text-slate-900 font-semibold focus:ring-2 focus:ring-amber-400 focus:outline-none bg-slate-50">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Valor Total (R$)</label>
+                    <input type="number" step="0.01" min="0" id="expAmount" required placeholder="0,00" class="w-full border border-slate-200 rounded-xl p-3 text-emerald-600 font-extrabold text-lg focus:ring-2 focus:ring-amber-400 focus:outline-none bg-slate-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Data</label>
+                    <input type="date" id="expDate" required class="w-full border border-slate-200 rounded-xl p-3 text-slate-900 font-semibold focus:ring-2 focus:ring-amber-400 focus:outline-none bg-slate-50">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Quilometragem Atual (KM)</label>
+                <input type="number" id="expKm" required placeholder="Ex: 85200" class="w-full border border-slate-200 rounded-xl p-3 text-slate-900 font-extrabold focus:ring-2 focus:ring-amber-400 focus:outline-none bg-slate-50">
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                    <span><i class="fa-solid fa-paperclip text-amber-500 mr-1"></i> Anexar Foto ou PDF</span>
+                    <span class="text-[10px] text-slate-400 font-normal uppercase">Opcional</span>
+                </label>
+
+                <input type="file" id="expFile" accept="image/*,application/pdf" onchange="handleFileSelected(event)" class="hidden">
+
+                <div id="fileUploadContainer" onclick="document.getElementById('expFile').click()" class="border-2 border-dashed border-slate-300 hover:border-amber-500 bg-white rounded-xl p-3 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-1">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400"></i>
+                    <span id="fileUploadText" class="text-xs font-bold text-slate-600">Clique para selecionar nota fiscal ou cupom</span>
+                </div>
+
+                <div id="filePreviewBox" class="hidden flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+                    <div class="flex items-center space-x-2.5 overflow-hidden">
+                        <div id="filePreviewIcon" class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 font-bold">
+                            <i class="fa-solid fa-file"></i>
+                        </div>
+                        <div class="truncate">
+                            <span id="filePreviewName" class="text-xs font-bold text-slate-900 block truncate">nota_fiscal.pdf</span>
+                            <span id="filePreviewType" class="text-[10px] text-emerald-600 font-bold block uppercase">Anexo carregado</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="removeSelectedFile()" class="text-slate-400 hover:text-red-500 p-1 transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Observações (Opcional)</label>
+                <textarea id="expNotes" rows="2" placeholder="Notas sobre o serviço, peças..." class="w-full border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-amber-400 focus:outline-none bg-slate-50"></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('expenseModal')" class="w-1/2 py-3 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl text-slate-700 transition">Cancelar</button>
+                <button type="submit" id="btnSaveExpense" class="w-1/2 py-3 bg-amber-400 hover:bg-amber-500 font-black rounded-xl text-slate-950 shadow-md transition">Salvar Registro</button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<div id="attachmentModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden my-auto flex flex-col max-h-[90vh]">
+        <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2.5 truncate">
+                <i class="fa-solid fa-paperclip text-amber-400"></i>
+                <h3 id="attachmentModalTitle" class="font-extrabold text-sm truncate">Comprovante Anexado</h3>
+            </div>
+            <div class="flex items-center space-x-2">
+                <a id="attachmentDownloadBtn" download="anexo" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Baixar
+                </a>
+                <button onclick="closeModal('attachmentModal')" class="text-slate-400 hover:text-white bg-slate-800 p-1.5 rounded-xl transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-4 flex-1 overflow-auto flex items-center justify-center bg-slate-100 min-h-[300px]">
+            <img id="attachmentImageDisplay" src="" alt="Comprovante" class="hidden max-h-[70vh] max-w-full rounded-xl shadow-md object-contain">
+            <iframe id="attachmentPdfDisplay" src="" class="hidden w-full h-[65vh] rounded-xl border border-slate-200"></iframe>
+        </div>
+    </div>
 </div>
-​<!-- APP CONTENT (HIDDEN UNTIL READY) -->
-<div id="appMainContent" class="hidden space-y-4">
-​<!-- VEHICLE SELECTOR & DETAILS -->
-<div class="bg-slate-800/90 border border-slate-700/60 rounded-2xl p-4 shadow-lg space-y-3">
-<div class="flex items-center justify-between">
-<div class="flex items-center space-x-2 flex-1">
-<select id="vehicleSelector" onchange="switchVehicle(this.value)" class="bg-slate-900 border border-slate-700 text-slate-100 text-sm font-bold rounded-xl px-3 py-2 w-full focus:outline-none focus:border-primary">
-<!-- Populated dynamically -->
-</select>
+
+<div id="addVehicleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="bg-slate-900 text-white p-4.5 flex justify-between items-center">
+            <h3 class="font-black text-lg flex items-center gap-2"><i class="fa-solid fa-car text-amber-400"></i> Cadastrar Veículo</h3>
+            <button onclick="closeModal('addVehicleModal')" class="text-slate-400 hover:text-white bg-slate-800 p-1.5 rounded-xl transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <form onsubmit="handleSaveVehicle(event)" class="p-5 space-y-4">
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Nome / Modelo do Carro</label>
+                <input type="text" id="vehName" required placeholder="Ex: Fiat Palio 1.0, Toyota Corolla" class="w-full border border-slate-200 rounded-xl p-3 font-semibold bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Placa (Opcional)</label>
+                    <input type="text" id="vehPlate" placeholder="Ex: ABC-1D23" class="w-full border border-slate-200 rounded-xl p-3 font-bold uppercase bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">KM Atual</label>
+                    <input type="number" id="vehKm" required placeholder="Ex: 50000" class="w-full border border-slate-200 rounded-xl p-3 font-extrabold bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('addVehicleModal')" class="w-1/2 py-3 bg-slate-100 font-bold rounded-xl text-slate-700 hover:bg-slate-200">Cancelar</button>
+                <button type="submit" id="btnSaveVehicle" class="w-1/2 py-3 bg-amber-400 font-black text-slate-950 rounded-xl shadow-md hover:bg-amber-500">Salvar Carro</button>
+            </div>
+        </form>
+    </div>
 </div>
-<button onclick="confirmDeleteCurrentVehicle()" class="ml-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 p-2 rounded-xl transition" title="Excluir Carro">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-</button>
+
+<div id="addReminderModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="bg-slate-900 text-white p-4.5 flex justify-between items-center">
+            <h3 class="font-black text-lg flex items-center gap-2"><i class="fa-solid fa-bell text-amber-400"></i> Novo Lembrete</h3>
+            <button onclick="closeModal('addReminderModal')" class="text-slate-400 hover:text-white bg-slate-800 p-1.5 rounded-xl transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <form onsubmit="handleSaveReminder(event)" class="p-5 space-y-4">
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Título do Lembrete</label>
+                <input type="text" id="remTitle" required placeholder="Ex: Trocar Óleo, Licenciamento 2026" class="w-full border border-slate-200 rounded-xl p-3 font-semibold bg-slate-50 text-slate-900 focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">KM Alvo (Opcional)</label>
+                    <input type="number" id="remTargetKm" placeholder="Ex: 90000" class="w-full border border-slate-200 rounded-xl p-3 font-bold bg-slate-50 text-slate-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Data Alvo (Opcional)</label>
+                    <input type="date" id="remTargetDate" class="w-full border border-slate-200 rounded-xl p-3 font-semibold bg-slate-50 text-slate-900">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('addReminderModal')" class="w-1/2 py-3 bg-slate-100 font-bold rounded-xl text-slate-700 hover:bg-slate-200">Cancelar</button>
+                <button type="submit" id="btnSaveReminder" class="w-1/2 py-3 bg-amber-400 font-black text-slate-950 rounded-xl shadow-md hover:bg-amber-500">Criar Lembrete</button>
+            </div>
+        </form>
+    </div>
 </div>
-​<div class="grid grid-cols-2 gap-2 pt-1">
-<div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-<span class="text-[11px] text-slate-400 block font-medium">Total Gasto</span>
-<span id="statTotalSpent" class="text-base font-bold text-amber-400">R$ 0,00</span>
+
+<div id="customConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4">
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+            <i class="fa-solid fa-trash-can"></i>
+        </div>
+        <div>
+            <h3 class="font-black text-slate-900 text-lg">Confirmar Exclusão</h3>
+            <p id="confirmModalText" class="text-xs text-slate-500 font-medium mt-1.5 leading-relaxed">Deseja realmente apagar este registro? Esta ação não pode ser desfeita.</p>
+        </div>
+        <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeModal('customConfirmModal')" class="w-1/2 py-3 bg-slate-100 hover:bg-slate-200 font-extrabold rounded-xl text-slate-700 transition text-xs border border-slate-200">Cancelar</button>
+            <button type="button" onclick="executeDelete()" class="w-1/2 py-3 bg-red-600 hover:bg-red-700 font-black rounded-xl text-white shadow-lg transition text-xs">Sim, Excluir</button>
+        </div>
+    </div>
 </div>
-<div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-<span class="text-[11px] text-slate-400 block font-medium">Km Atual</span>
-<span id="statCurrentKm" class="text-base font-bold text-slate-200">0 km</span>
+
+<div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 max-w-xs">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+    <span id="toastMsg" class="text-xs font-bold">Ação realizada com sucesso!</span>
 </div>
-</div>
-</div>
-​<!-- QUICK ACTIONS -->
-<div class="grid grid-cols-2 gap-3">
-<button onclick="openNewExpenseModal()" class="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold p-3.5 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/10 transition active:scale-95">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-<span class="text-sm">Novo Gasto</span>
-</button>
-<button onclick="openNewReminderModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold p-3.5 rounded-2xl flex items-center justify-center space-x-2 shadow transition active:scale-95">
-<svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-<span class="text-sm">Lembrete</span>
-</button>
-</div>
-​<!-- EXPENSES LIST -->
-<div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 shadow-lg space-y-3">
-<h3 class="font-bold text-sm text-slate-300 flex items-center justify-between">
-<span>Histórico de Gastos</span>
-<span id="expenseCountBadge" class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">0 itens</span>
-</h3>
-<div id="expensesListContainer" class="space-y-2 max-h-80 overflow-y-auto pr-1">
-<!-- Populated dynamically -->
-</div>
-</div>
-​</div>
-​<!-- FIRESTORE STATUS INFO -->
-<div class="bg-slate-800/40 border border-slate-700/40 rounded-2xl p-3 flex items-center justify-between text-xs text-slate-400">
-<div class="flex items-center space-x-2">
-<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
-<span>Firestore Ativo</span>
-</div>
-<span id="userIdDisplay" class="font-mono text-[10px] text-slate-500">ID: Conectando...</span>
-</div>
-​</main>
-​<!-- NEW VEHICLE MODAL -->
-<div id="modalNewVehicle" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-<div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-<h3 class="font-bold text-lg text-slate-100">Cadastrar Novo Carro</h3>
-<div class="space-y-3">
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Apelido / Nome do Carro</label>
-<input type="text" id="carNameInput" placeholder="Ex: Palio Fire 1.0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Placa (Opcional)</label>
-<input type="text" id="carPlateInput" placeholder="ABC-1234" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary uppercase">
-</div>
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Km Inicial</label>
-<input type="number" id="carKmInput" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-</div>
-<div class="flex space-x-2 pt-2">
-<button onclick="closeNewVehicleModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">Cancelar</button>
-<button onclick="saveNewVehicle()" class="flex-1 bg-primary hover:bg-primaryDark text-slate-950 font-bold py-2.5 rounded-xl text-xs transition">Salvar Carro</button>
-</div>
-</div>
-</div>
-​<!-- NEW EXPENSE MODAL -->
-<div id="modalNewExpense" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-<div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-<h3 class="font-bold text-lg text-slate-100">Adicionar Novo Gasto</h3>
-<div class="space-y-3">
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Título / Descrição</label>
-<input type="text" id="expenseTitleInput" placeholder="Ex: Troca de óleo, Peça, Mecânico..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Valor (R$)</label>
-<input type="number" step="0.01" id="expenseValueInput" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Quilometragem Atual do Carro</label>
-<input type="number" id="expenseKmInput" placeholder="Km no momento do gasto" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Data</label>
-<input type="date" id="expenseDateInput" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Comprovante (Foto ou PDF)</label>
-<input type="file" id="expenseAttachmentInput" accept="image/*,application/pdf" onchange="handleFileAttachment(this)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-slate-950 hover:file:bg-primaryDark">
-</div>
-</div>
-<div class="flex space-x-2 pt-2">
-<button onclick="closeNewExpenseModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">Cancelar</button>
-<button onclick="saveNewExpense()" class="flex-1 bg-primary hover:bg-primaryDark text-slate-950 font-bold py-2.5 rounded-xl text-xs transition">Adicionar</button>
-</div>
-</div>
-</div>
-​<!-- NEW REMINDER MODAL -->
-<div id="modalNewReminder" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-<div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-<h3 class="font-bold text-lg text-slate-100">Criar Lembrete</h3>
-<div class="space-y-3">
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Descrição</label>
-<input type="text" id="reminderTitleInput" placeholder="Ex: Trocar correia dentada" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-<div>
-<label class="text-xs text-slate-400 font-medium block mb-1">Km Alvo</label>
-<input type="number" id="reminderKmInput" placeholder="Ex: 50000" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-primary">
-</div>
-</div>
-<div class="flex space-x-2 pt-2">
-<button onclick="closeNewReminderModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">Cancelar</button>
-<button onclick="saveNewReminder()" class="flex-1 bg-primary hover:bg-primaryDark text-slate-950 font-bold py-2.5 rounded-xl text-xs transition">Salvar Lembrete</button>
-</div>
-</div>
-</div>
-​<!-- DELETE CONFIRMATION MODAL -->
-<div id="modalDeleteConfirm" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-<div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xs p-6 space-y-4 text-center shadow-2xl">
-<div class="w-12 h-12 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-</div>
-<div>
-<h3 class="font-bold text-base text-slate-100">Excluir Item?</h3>
-<p id="deleteConfirmText" class="text-xs text-slate-400 mt-1">Essa ação removerá o registro permanentemente do Firebase.</p>
-</div>
-<div class="flex space-x-2 pt-2">
-<button onclick="closeDeleteModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">Cancelar</button>
-<button onclick="executeDelete()" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Sim, Excluir</button>
-</div>
-</div>
-</div>
-​<!-- FIREBASE INITIALIZATION & LOGIC -->
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import {
-getAuth,
-signInAnonymously,
-onAuthStateChanged,
-setPersistence,
-browserLocalPersistence
+import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+import { 
+    getAuth, 
+    signInAnonymously, 
+    signInWithCustomToken,
+    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import {
-getFirestore,
-collection,
-doc,
-addDoc,
-deleteDoc,
-onSnapshot
+import { 
+    getFirestore, 
+    collection, 
+    doc, 
+    addDoc, 
+    updateDoc, 
+    deleteDoc, 
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-​const firebaseConfig = {
-apiKey: "AIzaSyCup2NCmFmRv1lKLBm3KDcVtZdysw4f_Bc",
-authDomain: "gastos-palio.firebaseapp.com",
-projectId: "gastos-palio",
-storageBucket: "gastos-palio.firebasestorage.app",
-messagingSenderId: "876113852466",
-appId: "1:876113852466:web:3d222edb423ef04a4ca42b"
-};
-​let app, auth, db;
+
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'autobolso-app';
+const firebaseConfig = typeof __firebase_config !== 'undefined' 
+    ? JSON.parse(__firebase_config)
+    : {
+        apiKey: "AIzaSyCup2NCmFmRvl1kLBm3KDcVtZdysw4f_Bc",
+        authDomain: "gastos-palio.firebaseapp.com",
+        databaseURL: "https://gastos-palio-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "gastos-palio",
+        storageBucket: "gastos-palio.firebasestorage.app",
+        messagingSenderId: "876113852466",
+        appId: "1:876113852466:web:3d222edb423ef04a4ca42b",
+        measurementId: "G-TH63KVFR05"
+      };
+
+const app = initializeApp(firebaseConfig);
+
+let analytics = null;
+isSupported().then(supported => {
+    if (supported) {
+        analytics = getAnalytics(app);
+    }
+}).catch(() => {});
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 let currentUser = null;
 let userId = null;
-​window.appState = {
-activeVehicleId: null,
-vehicles: [],
-expenses: [],
-reminders: []
+
+window.appState = {
+    activeVehicleId: null,
+    vehicles: [],
+    expenses: [],
+    reminders: []
 };
-​window.currentSelectedAttachment = null;
-window.pendingDeleteTarget = null;
-​let vehiclesUnsubscribe = null;
-let expensesUnsubscribe = null;
-​function showAuthError(err) {
-console.error("Auth error:", err);
-document.getElementById("cloudStatusDot").className = "w-2 h-2 rounded-full bg-red-500 inline-block";
-document.getElementById("cloudStatusText").innerText = "Erro no Firebase";
-document.getElementById("loadingSpinner").classList.add("hidden");
-document.getElementById("loadingStateText").innerText = "Falha ao carregar aplicativo.";
-​const errBanner = document.getElementById("loadingErrorBanner");
-const errDetail = document.getElementById("loadingErrorDetail");
-if (errBanner && errDetail) {
-errDetail.innerText = err.message || String(err);
-errBanner.classList.remove("hidden");
-}
-}
-​async function initFirebase() {
-try {
-const timeoutPromise = new Promise((_, reject) =>
-setTimeout(() => reject(new Error("Timeout: Firebase demorou para responder. Verifique a chave ou sua conexão.")), 10000)
-);
-​const authPromise = (async () => {
-app = initializeApp(firebaseConfig);
-auth = getAuth(app);
-db = getFirestore(app);
-​try {
-await setPersistence(auth, browserLocalPersistence);
-} catch (pErr) {
-console.warn("Persistence warning:", pErr);
-}
-​await signInAnonymously(auth);
-})();
-​await Promise.race([authPromise, timeoutPromise]);
-} catch (err) {
-showAuthError(err);
-}
-}
-​onAuthStateChanged(auth, (user) => {
-if (user) {
-currentUser = user;
-userId = user.uid;
-​document.getElementById("userIdDisplay").innerText = "ID: " + userId.substring(0, 8) + "...";
-document.getElementById("cloudStatusDot").className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
-document.getElementById("cloudStatusText").innerText = "Firebase Conectado";
-​// Hide loading overlay and show main UI
-document.getElementById("loadingOverlay").classList.add("hidden");
-document.getElementById("appMainContent").classList.remove("hidden");
-​setupFirestoreListeners();
-} else {
-document.getElementById("cloudStatusDot").className = "w-2 h-2 rounded-full bg-red-400 inline-block";
-document.getElementById("cloudStatusText").innerText = "Desconectado";
-}
-});
-​function setupFirestoreListeners() {
-if (vehiclesUnsubscribe) vehiclesUnsubscribe();
-​const vehiclesRef = collection(db, "vehicles");
-vehiclesUnsubscribe = onSnapshot(vehiclesRef, (snapshot) => {
-const list = [];
-snapshot.forEach(docSnap => {
-list.push({ id: docSnap.id, ...docSnap.data() });
-});
-window.appState.vehicles = list;
-​const selector = document.getElementById("vehicleSelector");
-selector.innerHTML = "";
-​if (list.length === 0) {
-selector.innerHTML = <option value="">Nenhum carro cadastrado</option>;
-document.getElementById("statTotalSpent").innerText = "R$ 0,00";
-document.getElementById("statCurrentKm").innerText = "0 km";
-document.getElementById("expensesListContainer").innerHTML = <div class="text-center py-6 text-slate-400 text-xs">Cadastre seu primeiro carro no botão acima!</div>;
-window.appState.activeVehicleId = null;
-} else {
-list.forEach(v => {
-const opt = document.createElement("option");
-opt.value = v.id;
-opt.textContent = ${v.name} ${v.plate ? '('+v.plate+')' : ''};
-selector.appendChild(opt);
-});
-​if (!window.appState.activeVehicleId || !list.some(v => v.id === window.appState.activeVehicleId)) {
-window.appState.activeVehicleId = list[0].id;
-}
-selector.value = window.appState.activeVehicleId;
-loadExpensesForActiveVehicle(window.appState.activeVehicleId);
-}
-}, (err) => {
-console.error("Error reading vehicles:", err);
-});
-}
-​window.switchVehicle = function(vehicleId) {
-window.appState.activeVehicleId = vehicleId;
-loadExpensesForActiveVehicle(vehicleId);
-}
-​function loadExpensesForActiveVehicle(vehicleId) {
-if (expensesUnsubscribe) expensesUnsubscribe();
-​const activeCar = window.appState.vehicles.find(v => v.id === vehicleId);
-if (activeCar) {
-document.getElementById("statCurrentKm").innerText = (activeCar.km || 0) + " km";
-}
-​const expensesRef = collection(db, "expenses");
-expensesUnsubscribe = onSnapshot(expensesRef, (snapshot) => {
-const list = [];
-let total = 0;
-snapshot.forEach(docSnap => {
-const data = docSnap.data();
-if (data.vehicleId === vehicleId) {
-list.push({ id: docSnap.id, ...data });
-total += Number(data.value || 0);
-}
-});
-​window.appState.expenses = list;
-document.getElementById("statTotalSpent").innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-document.getElementById("expenseCountBadge").innerText = list.length + " itens";
-​const container = document.getElementById("expensesListContainer");
-if (list.length === 0) {
-container.innerHTML = <div class="text-center py-6 text-slate-400 text-xs">Nenhum gasto registrado para este carro.</div>;
-} else {
-container.innerHTML = "";
-list.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).forEach(item => {
-const div = document.createElement("div");
-div.className = "bg-slate-900/60 border border-slate-800 rounded-xl p-3 flex items-center justify-between";
-div.innerHTML = <div> <span class="font-bold text-sm text-slate-200 block">${item.title}</span> <span class="text-[11px] text-slate-400">${item.date || ''} • ${item.km || 0} km</span> </div> <div class="flex items-center space-x-3"> <span class="font-bold text-sm text-amber-400">R$ ${Number(item.value).toFixed(2)}</span> <button onclick="promptDeleteExpense('${item.id}')" class="text-slate-500 hover:text-red-400 p-1 transition"> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> </button> </div>;
-container.appendChild(div);
-});
-}
-}, (err) => {
-console.error("Error loading expenses:", err);
-});
-}
-​// Modal Controls
-window.openNewVehicleModal = () => document.getElementById("modalNewVehicle").classList.remove("hidden");
-window.closeNewVehicleModal = () => document.getElementById("modalNewVehicle").classList.add("hidden");
-​window.openNewExpenseModal = () => {
-if (!window.appState.activeVehicleId) {
-alert("Cadastre ou selecione um carro primeiro.");
-return;
-}
-document.getElementById("expenseDateInput").value = new Date().toISOString().split('T')[0];
-document.getElementById("modalNewExpense").classList.remove("hidden");
-};
-window.closeNewExpenseModal = () => document.getElementById("modalNewExpense").classList.add("hidden");
-​window.openNewReminderModal = () => document.getElementById("modalNewReminder").classList.remove("hidden");
-window.closeNewReminderModal = () => document.getElementById("modalNewReminder").classList.add("hidden");
-​window.handleFileAttachment = (input) => {
-if (input.files && input.files[0]) {
-const reader = new FileReader();
-reader.onload = function(e) { window.currentSelectedAttachment = e.target.result; };
-reader.readAsDataURL(input.files[0]);
-}
-};
-​// Actions
-window.saveNewVehicle = async () => {
-const name = document.getElementById("carNameInput").value.trim();
-const plate = document.getElementById("carPlateInput").value.trim();
-const km = Number(document.getElementById("carKmInput").value) || 0;
-​if (!name) {
-alert("Digite o nome/apelido do carro.");
-return;
-}
-​try {
-await addDoc(collection(db, "vehicles"), { name, plate, km, createdAt: new Date().toISOString() });
-closeNewVehicleModal();
-document.getElementById("carNameInput").value = "";
-document.getElementById("carPlateInput").value = "";
-document.getElementById("carKmInput").value = "";
-} catch (err) {
-alert("Erro ao salvar carro: " + err.message);
-}
-};
-​window.saveNewExpense = async () => {
-const title = document.getElementById("expenseTitleInput").value.trim();
-const value = Number(document.getElementById("expenseValueInput").value);
-const km = Number(document.getElementById("expenseKmInput").value) || 0;
-const date = document.getElementById("expenseDateInput").value;
-​if (!title || isNaN(value)) {
-alert("Preencha o título e o valor do gasto.");
-return;
-}
-​try {
-await addDoc(collection(db, "expenses"), {
-vehicleId: window.appState.activeVehicleId,
-title,
-value,
-km,
-date,
-attachment: window.currentSelectedAttachment || null,
-createdAt: new Date().toISOString()
-});
-closeNewExpenseModal();
-document.getElementById("expenseTitleInput").value = "";
-document.getElementById("expenseValueInput").value = "";
-document.getElementById("expenseKmInput").value = "";
+
 window.currentSelectedAttachment = null;
-} catch (err) {
-alert("Erro ao salvar gasto: " + err.message);
-}
-};
-​window.saveNewReminder = async () => {
-alert("Lembrete salvo com sucesso!");
-closeNewReminderModal();
-};
-​window.promptDeleteExpense = (id) => {
-window.pendingDeleteTarget = { type: 'expense', id };
-document.getElementById("deleteConfirmText").innerText = "Deseja excluir este gasto do histórico?";
-document.getElementById("modalDeleteConfirm").classList.remove("hidden");
-};
-​window.confirmDeleteCurrentVehicle = () => {
-if (!window.appState.activeVehicleId) return;
-window.pendingDeleteTarget = { type: 'vehicle', id: window.appState.activeVehicleId };
-document.getElementById("deleteConfirmText").innerText = "Deseja excluir este carro e todos os dados dele?";
-document.getElementById("modalDeleteConfirm").classList.remove("hidden");
-};
-​window.closeDeleteModal = () => {
 window.pendingDeleteTarget = null;
-document.getElementById("modalDeleteConfirm").classList.add("hidden");
-};
-​window.executeDelete = async () => {
-if (!window.pendingDeleteTarget) return;
-const { type, id } = window.pendingDeleteTarget;
-try {
-if (type === 'expense') {
-await deleteDoc(doc(db, "expenses", id));
-} else if (type === 'vehicle') {
-await deleteDoc(doc(db, "vehicles", id));
+
+const LOCAL_KEY = 'autobolso_local_backup_v3';
+
+function loadFromLocalStorage() {
+    try {
+        const data = localStorage.getItem(LOCAL_KEY);
+        if (data) {
+            const parsed = JSON.parse(data);
+            window.appState.vehicles = parsed.vehicles || [];
+            window.appState.expenses = parsed.expenses || [];
+            window.appState.reminders = parsed.reminders || [];
+            if (window.appState.vehicles.length > 0 && !window.appState.activeVehicleId) {
+                window.appState.activeVehicleId = window.appState.vehicles[0].id;
+            }
+            document.getElementById("loadingState").classList.add("hidden");
+            window.updateUI();
+        }
+    } catch (e) {
+        console.error("Local storage load error:", e);
+    }
 }
-closeDeleteModal();
-} catch (err) {
-alert("Erro ao excluir: " + err.message);
+
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem(LOCAL_KEY, JSON.stringify({
+            vehicles: window.appState.vehicles,
+            expenses: window.appState.expenses,
+            reminders: window.appState.reminders
+        }));
+    } catch (e) {
+        console.error("Local storage save error:", e);
+    }
 }
+
+function showAuthError(err) {
+    console.warn("Auth sync warning:", err);
+    document.getElementById("cloudStatusDot").className = "w-2 h-2 rounded-full bg-amber-500 inline-block";
+    document.getElementById("cloudStatusText").innerText = "Modo Híbrido / Local Ativo";
+    document.getElementById("loadingSpinner").classList.add("hidden");
+    document.getElementById("loadingStateText").innerText = "Carregando dados salvos localmente";
+    
+    const errBanner = document.getElementById("loadingErrorBanner");
+    if (errBanner) {
+        errBanner.classList.remove("hidden");
+    }
+
+    loadFromLocalStorage();
+}
+
+async function initAuth() {
+    try {
+        await setPersistence(auth, browserLocalPersistence);
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+            await signInAnonymously(auth);
+        }
+    } catch (err) {
+        showAuthError(err);
+    }
+}
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        userId = user.uid;
+
+        document.getElementById("userIdDisplay").innerText = "ID: " + userId.substring(0, 8) + "...";
+        document.getElementById("cloudStatusDot").className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
+        document.getElementById("cloudStatusText").innerText = "Firebase Conectado";
+
+        setupFirestoreListeners();
+    } else {
+        document.getElementById("cloudStatusDot").className = "w-2 h-2 rounded-full bg-red-400 inline-block";
+        document.getElementById("cloudStatusText").innerText = "Desconectado";
+        loadFromLocalStorage();
+    }
+});
+
+initAuth();
+
+function setupFirestoreListeners() {
+    if (!userId) return;
+
+    const vehiclesCol = collection(db, 'artifacts', appId, 'users', userId, 'vehicles');
+    const expensesCol = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
+    const remindersCol = collection(db, 'artifacts', appId, 'users', userId, 'reminders');
+
+    let connectionTimeout = setTimeout(() => {
+        if (window.appState.vehicles.length === 0) {
+            showAuthError(new Error("Timeout conectando ao Firestore"));
+        }
+    }, 4000);
+
+    onSnapshot(vehiclesCol, (snapshot) => {
+        clearTimeout(connectionTimeout);
+        window.appState.vehicles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById("loadingState").classList.add("hidden");
+        saveToLocalStorage();
+        window.updateUI();
+    }, (error) => {
+        showAuthError(error);
+    });
+
+    onSnapshot(expensesCol, (snapshot) => {
+        window.appState.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        saveToLocalStorage();
+        window.updateUI();
+    }, (error) => {
+        console.warn("Expenses snapshot warning:", error);
+    });
+
+    onSnapshot(remindersCol, (snapshot) => {
+        window.appState.reminders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        saveToLocalStorage();
+        window.updateUI();
+    }, (error) => {
+        console.warn("Reminders snapshot warning:", error);
+    });
+}
+
+window.handleSaveVehicle = async function(event) {
+    event.preventDefault();
+
+    const btn = document.getElementById("btnSaveVehicle");
+    btn.disabled = true;
+    btn.innerText = "Salvando...";
+
+    const name = document.getElementById("vehName").value;
+    const plate = document.getElementById("vehPlate").value;
+    const currentKm = parseInt(document.getElementById("vehKm").value) || 0;
+    const newId = 'veh_' + Date.now();
+
+    const newVehicle = {
+        id: newId,
+        name,
+        plate,
+        currentKm,
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        if (userId) {
+            const vehiclesCol = collection(db, 'artifacts', appId, 'users', userId, 'vehicles');
+            const docRef = await addDoc(vehiclesCol, newVehicle);
+            newVehicle.id = docRef.id;
+        }
+    } catch (err) {
+        console.warn("Salvando localmente devido a restrição de rede:", err);
+    }
+
+    window.appState.vehicles.push(newVehicle);
+    window.appState.activeVehicleId = newVehicle.id;
+    saveToLocalStorage();
+
+    window.closeModal("addVehicleModal");
+    window.showToast("Veículo cadastrado com sucesso!");
+    document.getElementById("vehName").value = "";
+    document.getElementById("vehPlate").value = "";
+    document.getElementById("vehKm").value = "";
+
+    btn.disabled = false;
+    btn.innerText = "Salvar Carro";
+    window.updateUI();
 };
-​initFirebase();
+
+window.handleSaveExpense = async function(event) {
+    event.preventDefault();
+
+    const vehicle = getActiveVehicle();
+    if (!vehicle) return;
+
+    const btn = document.getElementById("btnSaveExpense");
+    btn.disabled = true;
+    btn.innerText = "Salvando...";
+
+    const category = document.getElementById("expCategory").value;
+    const title = document.getElementById("expTitle").value;
+    const amount = parseFloat(document.getElementById("expAmount").value);
+    const date = document.getElementById("expDate").value;
+    const km = parseInt(document.getElementById("expKm").value);
+    const notes = document.getElementById("expNotes").value;
+
+    const expenseData = {
+        id: 'exp_' + Date.now(),
+        vehicleId: vehicle.id,
+        category,
+        title,
+        amount,
+        date,
+        km,
+        notes,
+        attachment: window.currentSelectedAttachment || null,
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        if (userId) {
+            const expensesCol = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
+            const docRef = await addDoc(expensesCol, expenseData);
+            expenseData.id = docRef.id;
+        }
+    } catch (err) {
+        console.warn("Salvando gasto localmente:", err);
+    }
+
+    window.appState.expenses.push(expenseData);
+
+    if (km > vehicle.currentKm) {
+        vehicle.currentKm = km;
+        try {
+            if (userId) {
+                const vehicleDocRef = doc(db, 'artifacts', appId, 'users', userId, 'vehicles', vehicle.id);
+                await updateDoc(vehicleDocRef, { currentKm: km });
+            }
+        } catch (e) {
+            console.warn("Atualização de KM local", e);
+        }
+    }
+
+    saveToLocalStorage();
+    window.closeModal("expenseModal");
+    window.showToast("Registro salvo com sucesso!");
+
+    btn.disabled = false;
+    btn.innerText = "Salvar Registro";
+    window.updateUI();
+};
+
+window.handleSaveReminder = async function(event) {
+    event.preventDefault();
+
+    const vehicle = getActiveVehicle();
+    if (!vehicle) return;
+
+    const btn = document.getElementById("btnSaveReminder");
+    btn.disabled = true;
+    btn.innerText = "Criando...";
+
+    const title = document.getElementById("remTitle").value;
+    const targetKm = parseInt(document.getElementById("remTargetKm").value) || null;
+    const targetDate = document.getElementById("remTargetDate").value || "";
+
+    const reminderData = {
+        id: 'rem_' + Date.now(),
+        vehicleId: vehicle.id,
+        title,
+        targetKm,
+        targetDate,
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        if (userId) {
+            const remindersCol = collection(db, 'artifacts', appId, 'users', userId, 'reminders');
+            const docRef = await addDoc(remindersCol, reminderData);
+            reminderData.id = docRef.id;
+        }
+    } catch (err) {
+        console.warn("Salvando lembrete localmente:", err);
+    }
+
+    window.appState.reminders.push(reminderData);
+    saveToLocalStorage();
+
+    window.closeModal("addReminderModal");
+    window.showToast("Lembrete salvo com sucesso!");
+    document.getElementById("remTitle").value = "";
+    document.getElementById("remTargetKm").value = "";
+    document.getElementById("remTargetDate").value = "";
+
+    btn.disabled = false;
+    btn.innerText = "Criar Lembrete";
+    window.updateUI();
+};
+
+window.executeDelete = async function() {
+    if (!window.pendingDeleteTarget) return;
+
+    const { type, id } = window.pendingDeleteTarget;
+
+    try {
+        if (userId) {
+            const docRef = doc(db, 'artifacts', appId, 'users', userId, type === 'expense' ? 'expenses' : type === 'reminder' ? 'reminders' : 'vehicles', id);
+            await deleteDoc(docRef);
+        }
+    } catch (err) {
+        console.warn("Remoção local:", err);
+    }
+
+    if (type === 'expense') {
+        window.appState.expenses = window.appState.expenses.filter(e => e.id !== id);
+        window.showToast("Registro excluído com sucesso!");
+    } else if (type === 'reminder') {
+        window.appState.reminders = window.appState.reminders.filter(r => r.id !== id);
+        window.showToast("Lembrete removido!");
+    } else if (type === 'vehicle') {
+        window.appState.vehicles = window.appState.vehicles.filter(v => v.id !== id);
+        window.appState.expenses = window.appState.expenses.filter(e => e.vehicleId !== id);
+        window.appState.reminders = window.appState.reminders.filter(r => r.vehicleId !== id);
+        const remaining = window.appState.vehicles;
+        window.appState.activeVehicleId = remaining.length > 0 ? remaining[0].id : null;
+        window.showToast("Veículo excluído com sucesso!");
+    }
+
+    saveToLocalStorage();
+    window.pendingDeleteTarget = null;
+    window.closeModal('customConfirmModal');
+    window.updateUI();
+};
+
+window.exportDataJson = function() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        vehicles: window.appState.vehicles,
+        expenses: window.appState.expenses,
+        reminders: window.appState.reminders
+    }, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "autobolso_backup_" + new Date().toISOString().split('T')[0] + ".json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    window.showToast("Backup exportado com sucesso!");
+};
+</script>
+
+<script>
+function deleteActiveVehicle() {
+    const vehicle = getActiveVehicle();
+    if (!vehicle) return;
+
+    window.pendingDeleteTarget = { type: 'vehicle', id: vehicle.id };
+    const modalText = document.getElementById('confirmModalText');
+    if (modalText) {
+        modalText.innerText = `Deseja realmente excluir o veículo "${vehicle.name}" e todos os seus gastos associados?`;
+    }
+    openModal('customConfirmModal');
+}
+
+window.onload = function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('expDate').value = today;
+    loadFromLocalStorage();
+};
+
+window.updateUI = function() {
+    const hasVehicles = window.appState.vehicles && window.appState.vehicles.length > 0;
+    const emptyState = document.getElementById("emptyVehicleState");
+    const dashboardContent = document.getElementById("dashboardContent");
+    const vehicleSelectContainer = document.getElementById("vehicleSelectContainer");
+
+    if (!hasVehicles) {
+        emptyState.classList.remove("hidden");
+        dashboardContent.classList.add("hidden");
+        vehicleSelectContainer.classList.add("hidden");
+        return;
+    }
+
+    emptyState.classList.add("hidden");
+    dashboardContent.classList.remove("hidden");
+    vehicleSelectContainer.classList.remove("hidden");
+
+    if (!window.appState.activeVehicleId || !window.appState.vehicles.find(v => v.id === window.appState.activeVehicleId)) {
+        window.appState.activeVehicleId = window.appState.vehicles[0].id;
+    }
+
+    renderVehicleSelector();
+    renderHeaderAndStats();
+    renderReminders();
+    renderHistory();
+}
+
+function getActiveVehicle() {
+    return window.appState.vehicles.find(v => v.id === window.appState.activeVehicleId) || window.appState.vehicles[0];
+}
+
+function renderVehicleSelector() {
+    const select = document.getElementById("vehicleSelect");
+    select.innerHTML = window.appState.vehicles.map(v => 
+        `<option value="${v.id}" ${v.id === window.appState.activeVehicleId ? 'selected' : ''}>${v.name}</option>`
+    ).join("");
+}
+
+function switchVehicle(id) {
+    window.appState.activeVehicleId = id;
+    window.updateUI();
+    showToast("Veículo selecionado!");
+}
+
+function renderHeaderAndStats() {
+    const vehicle = getActiveVehicle();
+    if (!vehicle) return;
+
+    document.getElementById("activeCarName").innerText = vehicle.name;
+    document.getElementById("activeCarPlate").innerText = vehicle.plate || "SEM PLACA";
+    document.getElementById("activeCarKm").innerText = `${(vehicle.currentKm || 0).toLocaleString('pt-BR')} km`;
+
+    const vExpenses = window.appState.expenses.filter(e => e.vehicleId === vehicle.id);
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    const monthTotal = vExpenses.filter(e => {
+        if (!e.date) return false;
+        const d = new Date(e.date + "T00:00:00");
+        return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+    }).reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+    document.getElementById("statMonthTotal").innerText = formatCurrency(monthTotal);
+
+    const allTime = vExpenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    document.getElementById("statAllTimeTotal").innerText = formatCurrency(allTime);
+    document.getElementById("statRecordCount").innerText = `${vExpenses.length}`;
+}
+
+function renderReminders() {
+    const container = document.getElementById("remindersContainer");
+    const vehicle = getActiveVehicle();
+    if (!vehicle) return;
+
+    const vReminders = window.appState.reminders.filter(r => r.vehicleId === vehicle.id);
+
+    if (vReminders.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs font-semibold">Nenhum lembrete cadastrado. Clique em "+ Lembrete" para criar um.</div>`;
+        return;
+    }
+
+    container.innerHTML = vReminders.map(r => {
+        let statusBadge = "";
+
+        if (r.targetKm) {
+            const kmLeft = r.targetKm - (vehicle.currentKm || 0);
+            if (kmLeft <= 0) {
+                statusBadge = `<span class="bg-red-100 text-red-700 text-[11px] font-black px-2.5 py-1 rounded-full border border-red-200">VENCIDO (${Math.abs(kmLeft)} km passados)</span>`;
+            } else if (kmLeft <= 1000) {
+                statusBadge = `<span class="bg-amber-100 text-amber-800 text-[11px] font-black px-2.5 py-1 rounded-full border border-amber-200">Faltam ${kmLeft} km</span>`;
+            } else {
+                statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2.5 py-1 rounded-full border border-emerald-200">Faltam ${kmLeft} km</span>`;
+            }
+        } else if (r.targetDate) {
+            statusBadge = `<span class="bg-sky-100 text-sky-800 text-[11px] font-black px-2.5 py-1 rounded-full border border-sky-200">Data: ${formatDateStr(r.targetDate)}</span>`;
+        }
+
+        return `
+            <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                <div class="space-y-0.5">
+                    <div class="font-extrabold text-slate-900 text-sm">${r.title}</div>
+                    <div class="text-xs text-slate-500 font-medium">
+                        ${r.targetKm ? `Meta: ${r.targetKm.toLocaleString('pt-BR')} km` : ''}
+                        ${r.targetDate ? `Data: ${formatDateStr(r.targetDate)}` : ''}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    ${statusBadge}
+                    <button onclick="deleteReminder('${r.id}')" title="Excluir Lembrete" class="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-xl transition border border-red-200 flex items-center justify-center">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function renderHistory() {
+    const container = document.getElementById("expenseList");
+    const vehicle = getActiveVehicle();
+    if (!vehicle) return;
+
+    const categoryFilter = document.getElementById("historyFilterCategory").value;
+    let list = window.appState.expenses.filter(e => e.vehicleId === vehicle.id);
+
+    if (categoryFilter !== "ALL") {
+        list = list.filter(e => e.category === categoryFilter);
+    }
+
+    list.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (list.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs font-semibold">Nenhum lançamento registrado nesta categoria.</div>`;
+        return;
+    }
+
+    container.innerHTML = list.map(e => {
+        let catIcon = "fa-receipt";
+        let catBg = "bg-purple-100 text-purple-700 border border-purple-200";
+
+        if (e.category === "Manutenção") {
+            catIcon = "fa-wrench";
+            catBg = "bg-sky-100 text-sky-700 border border-sky-200";
+        } else if (e.category === "Documento") {
+            catIcon = "fa-file-invoice-dollar";
+            catBg = "bg-emerald-100 text-emerald-700 border border-emerald-200";
+        }
+
+        let attachmentBadge = "";
+        if (e.attachment) {
+            const isPdf = e.attachment.type && e.attachment.type.includes("pdf");
+            attachmentBadge = `
+                <button onclick="viewAttachment('${e.id}')" class="inline-flex items-center gap-1 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-lg border border-slate-200 transition mt-1">
+                    <i class="${isPdf ? 'fa-solid fa-file-pdf text-red-500' : 'fa-solid fa-image text-sky-600'}"></i>
+                    <span>Ver ${isPdf ? 'PDF' : 'Foto'}</span>
+                </button>
+            `;
+        }
+
+        return `
+            <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-2xl transition shadow-sm">
+                <div class="flex items-center space-x-3.5 overflow-hidden">
+                    <div class="w-11 h-11 ${catBg} rounded-2xl flex items-center justify-center text-lg flex-shrink-0 font-bold">
+                        <i class="fa-solid ${catIcon}"></i>
+                    </div>
+                    <div class="truncate">
+                        <h4 class="font-extrabold text-slate-900 text-sm truncate">${e.title}</h4>
+                        <div class="text-xs text-slate-500 font-medium flex flex-wrap gap-x-2 gap-y-0.5">
+                            <span><i class="fa-regular fa-calendar"></i> ${formatDateStr(e.date)}</span>
+                            <span>• ${(e.km || 0).toLocaleString('pt-BR')} km</span>
+                        </div>
+                        ${attachmentBadge}
+                    </div>
+                </div>
+                <div class="text-right flex items-center gap-3 flex-shrink-0">
+                    <div>
+                        <span class="font-black text-slate-900 text-base block">${formatCurrency(e.amount)}</span>
+                        <span class="text-[10px] text-slate-400 font-black uppercase tracking-wider">${e.category}</span>
+                    </div>
+                    <button onclick="deleteExpense('${e.id}')" class="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 px-3 py-2 rounded-xl transition flex items-center gap-1.5 font-bold text-xs shadow-sm active:scale-95" title="Excluir gasto">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                        <span>Excluir</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function handleFileSelected(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 1.5 * 1024 * 1024) {
+        showToast("Selecione um arquivo menor que 1.5MB", true);
+        event.target.value = "";
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        window.currentSelectedAttachment = {
+            name: file.name,
+            type: file.type,
+            dataUrl: e.target.result
+        };
+
+        document.getElementById("filePreviewBox").classList.remove("hidden");
+        document.getElementById("fileUploadContainer").classList.add("hidden");
+        document.getElementById("filePreviewName").innerText = file.name;
+
+        const isPdf = file.type.includes("pdf");
+        document.getElementById("filePreviewType").innerText = isPdf ? "Documento PDF" : "Foto Anexada";
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeSelectedFile() {
+    window.currentSelectedAttachment = null;
+    document.getElementById("expFile").value = "";
+    document.getElementById("filePreviewBox").classList.add("hidden");
+    document.getElementById("fileUploadContainer").classList.remove("hidden");
+}
+
+function viewAttachment(expenseId) {
+    const expense = window.appState.expenses.find(e => e.id === expenseId);
+    if (!expense || !expense.attachment) return;
+
+    const att = expense.attachment;
+    const isPdf = att.type && att.type.includes("pdf");
+
+    document.getElementById("attachmentModalTitle").innerText = expense.title + " - Comprovante";
+    const downloadBtn = document.getElementById("attachmentDownloadBtn");
+    downloadBtn.href = att.dataUrl;
+    downloadBtn.download = att.name || "comprovante";
+
+    const imgDisplay = document.getElementById("attachmentImageDisplay");
+    const pdfDisplay = document.getElementById("attachmentPdfDisplay");
+
+    if (isPdf) {
+        imgDisplay.classList.add("hidden");
+        pdfDisplay.classList.remove("hidden");
+        pdfDisplay.src = att.dataUrl;
+    } else {
+        pdfDisplay.classList.add("hidden");
+        imgDisplay.classList.remove("hidden");
+        imgDisplay.src = att.dataUrl;
+    }
+
+    openModal("attachmentModal");
+}
+
+function openAddExpenseModal(category) {
+    document.getElementById("expCategory").value = category;
+    document.getElementById("modalExpenseTitle").innerText = `Novo Registro: ${category}`;
+
+    const vehicle = getActiveVehicle();
+    document.getElementById("expKm").value = vehicle ? vehicle.currentKm : "";
+    document.getElementById("expTitle").value = "";
+    document.getElementById("expAmount").value = "";
+    document.getElementById("expNotes").value = "";
+    removeSelectedFile();
+
+    openModal("expenseModal");
+}
+
+function deleteExpense(id) {
+    window.pendingDeleteTarget = { type: 'expense', id };
+    const modalText = document.getElementById('confirmModalText');
+    if (modalText) modalText.innerText = "Deseja realmente apagar este registro?";
+    openModal('customConfirmModal');
+}
+
+function deleteReminder(id) {
+    window.pendingDeleteTarget = { type: 'reminder', id };
+    const modalText = document.getElementById('confirmModalText');
+    if (modalText) modalText.innerText = "Deseja realmente remover este lembrete?";
+    openModal('customConfirmModal');
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.remove("hidden");
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add("hidden");
+}
+
+function showToast(msg, isError = false) {
+    const toast = document.getElementById("toast");
+    const toastMsg = document.getElementById("toastMsg");
+    const toastIcon = document.getElementById("toastIcon");
+
+    toastMsg.innerText = msg;
+    toastIcon.className = isError 
+        ? "fa-solid fa-circle-exclamation text-red-400 text-lg" 
+        : "fa-solid fa-circle-check text-emerald-400 text-lg";
+
+    toast.classList.remove("translate-y-20", "opacity-0");
+    toast.classList.add("translate-y-0", "opacity-100");
+
+    setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-20", "opacity-0");
+    }, 3000);
+}
+
+function formatCurrency(val) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+}
+
+function formatDateStr(dateStr) {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+}
 </script>
 </body>
 </html>
