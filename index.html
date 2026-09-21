@@ -70,8 +70,13 @@
     <main class="max-w-4xl mx-auto px-4 w-full flex-1 mt-5 space-y-6">
 
         <section id="loadingState" class="bg-white rounded-3xl p-8 shadow-md border border-slate-200 text-center space-y-3">
-            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500"></i>
-            <p class="text-sm font-bold text-slate-600">Sincronizando com o Firebase Firestore...</p>
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500" id="loadingSpinner"></i>
+            <p id="loadingStateText" class="text-sm font-bold text-slate-600">Sincronizando com o Firebase Firestore...</p>
+            <div id="loadingErrorBanner" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl text-left text-xs text-red-700 space-y-1">
+                <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Falha ao conectar ao Firebase:</p>
+                <p id="loadingErrorDetail" class="font-mono text-[11px] bg-red-100 p-2 rounded-lg break-all"></p>
+                <p class="pt-1 font-semibold text-slate-700">Verifique se você ativou o <b>Login Anônimo</b> e adicionou o domínio do GitHub Pages em <b>Authentication > Authorized domains</b> no Firebase Console.</p>
+            </div>
         </section>
 
         <section id="emptyVehicleState" class="hidden bg-white rounded-3xl p-8 shadow-md border border-slate-200 text-center space-y-4">
@@ -422,14 +427,15 @@
             getAuth, 
             signInAnonymously, 
             signInWithCustomToken, 
-            onAuthStateChanged 
+            onAuthStateChanged,
+            setPersistence,
+            browserLocalPersistence
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, 
             collection, 
             doc, 
             addDoc, 
-            setDoc, 
             updateDoc, 
             deleteDoc, 
             onSnapshot 
@@ -462,22 +468,32 @@
         };
 
         window.currentSelectedAttachment = null;
-        window.pendingDeleteTarget = null; // { type: 'expense'|'reminder', id: string }
+        window.pendingDeleteTarget = null;
+
+        function showAuthError(err) {
+            console.error("Auth error details:", err);
+            document.getElementById("cloudStatusDot").className = "w-2 h-2 rounded-full bg-red-500 inline-block";
+            document.getElementById("cloudStatusText").innerText = "Erro no Firebase";
+            document.getElementById("loadingSpinner").classList.add("hidden");
+            document.getElementById("loadingStateText").innerText = "Erro ao conectar com o banco de dados";
+            const errBanner = document.getElementById("loadingErrorBanner");
+            const errDetail = document.getElementById("loadingErrorDetail");
+            if (errBanner && errDetail) {
+                errDetail.innerText = err.message || String(err);
+                errBanner.classList.remove("hidden");
+            }
+        }
 
         async function initAuth() {
             try {
+                await setPersistence(auth, browserLocalPersistence);
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
             } catch (err) {
-                console.error("Auth initialization error:", err);
-                try {
-                    await signInAnonymously(auth);
-                } catch (e) {
-                    console.error("Fallback auth failed:", e);
-                }
+                showAuthError(err);
             }
         }
 
@@ -506,18 +522,15 @@
             const expensesCol = collection(db, 'artifacts', appId, 'users', userId, 'expenses');
             const remindersCol = collection(db, 'artifacts', appId, 'users', userId, 'reminders');
 
-            // 1. Listen to Vehicles
             onSnapshot(vehiclesCol, (snapshot) => {
                 window.appState.vehicles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
                 document.getElementById("loadingState").classList.add("hidden");
                 window.updateUI();
             }, (error) => {
                 console.error("Error fetching vehicles:", error);
-                window.showToast("Erro ao carregar veículos do Firebase", true);
+                showAuthError(error);
             });
 
-            // 2. Listen to Expenses
             onSnapshot(expensesCol, (snapshot) => {
                 window.appState.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 window.updateUI();
@@ -525,7 +538,6 @@
                 console.error("Error fetching expenses:", error);
             });
 
-            // 3. Listen to Reminders
             onSnapshot(remindersCol, (snapshot) => {
                 window.appState.reminders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 window.updateUI();
